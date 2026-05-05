@@ -46,7 +46,7 @@ jobs:
           cache: pip
       - run: pip install -e ".[dev]"
       - run: pytest -v --tb=short --junitxml=reports/test-results.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: test-results-${{ matrix.python-version }}
