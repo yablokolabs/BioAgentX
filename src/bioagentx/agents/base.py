@@ -4,6 +4,13 @@ from bioagentx.orchestration.state import AgentStep, WorkflowState
 
 
 class Agent(ABC):
+    """Base class for all workflow agents.
+
+    Subclasses must set the ``name`` class attribute and implement
+    :meth:`execute`.  The :meth:`run` template records timing and output
+    into the shared :class:`WorkflowState`.
+    """
+
     name: str
 
     async def run(self, state: WorkflowState) -> WorkflowState:
@@ -15,4 +22,6 @@ class Agent(ABC):
         return state
 
     @abstractmethod
-    async def execute(self, state: WorkflowState) -> dict[str, object]: ...
+    async def execute(self, state: WorkflowState) -> dict[str, object]:
+        """Perform the agent's work and return a summary dict."""
+        ...

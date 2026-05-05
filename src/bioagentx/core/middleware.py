@@ -2,11 +2,14 @@ import time
 import uuid
 from collections.abc import Callable
 
-from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
 
 
 class RequestContextMiddleware(BaseHTTPMiddleware):
+    """Injects a unique ``x-trace-id`` header and measures request latency."""
+
     async def dispatch(self, request: Request, call_next: Callable[[Request], Response]) -> Response:
         incoming = request.headers.get("x-trace-id")
         try:

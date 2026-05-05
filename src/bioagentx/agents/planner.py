@@ -4,6 +4,8 @@ from bioagentx.orchestration.state import WorkflowPlanStep, WorkflowState
 
 
 class PlannerAgent(Agent):
+    """Decomposes a biomedical query into an ordered tool-backed workflow plan."""
+
     name = "planner"
 
     def __init__(self, graph: KnowledgeGraph) -> None:
@@ -22,14 +24,14 @@ class PlannerAgent(Agent):
             required_tools.append("pathway_analysis")
         if diseases or "trial" in lowered or "therapy" in lowered or "clinical" in lowered:
             required_tools.append("clinical_trial_search")
-        if any(token in lowered for token in ["stats", "p-value", "significant", "cohort", "mean", "median"]):
+        if any(token in lowered for token in ("stats", "p-value", "significant", "cohort", "mean", "median")):
             required_tools.append("stats_analysis")
 
-        # Enforce real tool use even for broad scientific questions.
-        if not required_tools:
+        # Only add stats_analysis as a fallback when the query clearly
+        # requests numeric analysis but no other tools matched.
+        if not required_tools and any(token in lowered for token in ("data", "analysis", "study", "evidence")):
             required_tools.append("stats_analysis")
 
-        # Preserve order while removing duplicates.
         ordered_tools = list(dict.fromkeys(required_tools))
         state.extracted_entities = entities
         state.plan = [

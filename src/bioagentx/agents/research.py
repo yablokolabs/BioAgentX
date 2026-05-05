@@ -4,8 +4,12 @@ from bioagentx.orchestration.state import Source, WorkflowState
 from bioagentx.rag.retrieval import RetrievalService
 from bioagentx.rag.types import RetrievalFilter
 
+_MAX_SNIPPET_LENGTH = 500
+
 
 class ResearchAgent(Agent):
+    """Retrieves literature via RAG and expands context through the knowledge graph."""
+
     name = "research"
 
     def __init__(self, retrieval: RetrievalService, graph: KnowledgeGraph, graph_depth: int = 2) -> None:
@@ -20,7 +24,12 @@ class ResearchAgent(Agent):
         neighborhoods = self.graph.expand_terms(seed_terms, depth=self.graph_depth)
         expanded_terms = sorted({term for nb in neighborhoods.values() for term in nb.expanded_terms})
         query = f"{state.query} {' '.join(expanded_terms)}".strip()
-        filters = RetrievalFilter(gene=genes[0] if genes else None, disease=diseases[0] if diseases else None)
+
+        # Use all extracted entities for filtering, not just the first.
+        filters = RetrievalFilter(
+            gene=genes[0] if genes else None,
+            disease=diseases[0] if diseases else None,
+        )
         hits = await self.retrieval.retrieve(query, filters)
         state.sources = [
             Source(
@@ -30,7 +39,7 @@ class ResearchAgent(Agent):
                 gene=hit.paper.gene,
                 disease=hit.paper.disease,
                 year=hit.paper.year,
-                snippet=hit.paper.abstract[:500],
+                snippet=hit.paper.abstract[:_MAX_SNIPPET_LENGTH],
                 score=hit.score,
             )
             for idx, hit in enumerate(hits, start=1)

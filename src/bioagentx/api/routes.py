@@ -23,6 +23,7 @@ WorkflowStoreDep = Annotated[WorkflowStore, Depends(get_workflow_store)]
 
 @router.get("/health", response_model=HealthResponse)
 async def health(request: Request) -> HealthResponse:
+    """Liveness / readiness probe."""
     return HealthResponse(
         status="ok",
         app="BioAgentX",
@@ -33,6 +34,7 @@ async def health(request: Request) -> HealthResponse:
 
 @router.post("/query", response_model=QueryResponse)
 async def query(payload: QueryRequest, request: Request, engine: WorkflowEngineDep) -> QueryResponse:
+    """Submit a biomedical question and receive a tool-backed answer."""
     trace_id = getattr(request.state, "trace_id", None)
     state = await engine.run(payload.query, trace_id=trace_id)
     if state.answer is None or state.verification is None:
@@ -49,6 +51,7 @@ async def query(payload: QueryRequest, request: Request, engine: WorkflowEngineD
 
 @router.get("/workflow/{workflow_id}", response_model=WorkflowResponse)
 async def workflow(workflow_id: str, store: WorkflowStoreDep) -> WorkflowResponse:
+    """Retrieve the full persisted state of a previous workflow run."""
     state = await store.get_workflow(workflow_id)
     if state is None:
         raise HTTPException(status_code=404, detail="workflow_not_found")
@@ -60,7 +63,7 @@ async def workflow(workflow_id: str, store: WorkflowStoreDep) -> WorkflowRespons
         steps=state.steps,
         extracted_entities=state.extracted_entities,
         graph_context=state.graph_context,
-        tool_calls=[call.model_dump() for call in state.tool_calls],
+        tool_calls=state.tool_calls,
         answer=state.answer,
         confidence_score=state.confidence_score,
         verification=state.verification,
@@ -69,6 +72,7 @@ async def workflow(workflow_id: str, store: WorkflowStoreDep) -> WorkflowRespons
 
 @router.post("/feedback", response_model=FeedbackResponse)
 async def feedback(payload: FeedbackRequest, store: WorkflowStoreDep) -> FeedbackResponse:
+    """Record user feedback for a completed workflow."""
     if await store.get_workflow(payload.workflow_id) is None:
         raise HTTPException(status_code=404, detail="workflow_not_found")
     record = await store.save_feedback(
@@ -82,4 +86,5 @@ async def feedback(payload: FeedbackRequest, store: WorkflowStoreDep) -> Feedbac
 
 @router.get("/metrics")
 async def metrics() -> Response:
+    """Prometheus-compatible metrics endpoint."""
     return Response(content=metrics_bytes(), media_type="text/plain; version=0.0.4")

@@ -1,32 +1,55 @@
 import time
-from collections import defaultdict, deque
+from collections import deque
 from collections.abc import Callable
 
-from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse
+from starlette.requests import Request
+from starlette.responses import JSONResponse, Response
+
+_PRUNE_INTERVAL = 300
+_WINDOW_SECONDS = 60
 
 
 class InMemoryRateLimitMiddleware(BaseHTTPMiddleware):
-    """Per-process token-window limiter. Put Redis/API gateway in front for multi-replica prod."""
+    """Sliding-window rate limiter scoped per client IP.
 
-    def __init__(self, app, limit_per_minute: int, burst: int) -> None:  # type: ignore[no-untyped-def]
-        super().__init__(app)
+    Allows up to ``burst`` requests in quick succession and enforces
+    ``limit_per_minute`` over a rolling 60-second window. Use an API
+    gateway or Redis for distributed rate limiting across replicas.
+    """
+
+    def __init__(self, app: object, *, limit_per_minute: int, burst: int) -> None:
+        super().__init__(app)  # type: ignore[arg-type]
         self.limit = limit_per_minute
         self.burst = burst
-        self._hits: dict[str, deque[float]] = defaultdict(deque)
+        self._hits: dict[str, deque[float]] = {}
+        self._last_prune: float = time.monotonic()
+
+    def _prune_stale_clients(self, now: float) -> None:
+        """Remove tracking entries for clients with no recent activity."""
+        if now - self._last_prune < _PRUNE_INTERVAL:
+            return
+        stale = [k for k, v in self._hits.items() if not v or v[-1] < now - _WINDOW_SECONDS]
+        for key in stale:
+            del self._hits[key]
+        self._last_prune = now
 
     async def dispatch(self, request: Request, call_next: Callable[[Request], Response]) -> Response:
         client = request.client.host if request.client else "unknown"
         now = time.monotonic()
-        window = self._hits[client]
-        while window and window[0] < now - 60:
+        self._prune_stale_clients(now)
+
+        window = self._hits.setdefault(client, deque())
+        while window and window[0] < now - _WINDOW_SECONDS:
             window.popleft()
-        allowed = min(self.limit, self.burst)
+
+        # Burst cap prevents instantaneous flooding; the sliding window
+        # enforces the sustained rate over the full minute.
+        allowed = max(self.burst, self.limit)
         if len(window) >= allowed:
             return JSONResponse(
                 status_code=429,
-                content={"error": "rate_limited", "message": "Too many BioAgentX requests."},
+                content={"error": "rate_limited", "message": "Too many requests — please retry shortly."},
             )
         window.append(now)
         return await call_next(request)

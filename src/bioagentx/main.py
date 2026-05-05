@@ -5,6 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from bioagentx import __version__
 from bioagentx.agents.analysis import AnalysisAgent
 from bioagentx.agents.planner import PlannerAgent
 from bioagentx.agents.research import ResearchAgent
@@ -62,7 +63,7 @@ async def lifespan(app: FastAPI):
         retrieval_limit=settings.retrieval_limit,
         rerank_limit=settings.rerank_limit,
     )
-    tools = build_default_registry(settings.cache_ttl_seconds)
+    tools = build_default_registry(settings.cache_ttl_seconds, max_cache_size=settings.cache_max_size)
     workflow_engine = WorkflowEngine(
         planner=PlannerAgent(graph),
         research=ResearchAgent(retrieval, graph, settings.graph_depth),
@@ -82,7 +83,7 @@ def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(
         title="BioAgentX",
-        version="0.1.0",
+        version=__version__,
         description="Agentic biomedical and clinical data analysis platform with tool-backed workflows.",
         lifespan=lifespan,
     )

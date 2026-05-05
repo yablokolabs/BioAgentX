@@ -4,8 +4,12 @@ from bioagentx.agents.base import Agent
 from bioagentx.orchestration.state import ToolCallRecord, WorkflowState
 from bioagentx.tools.registry import ToolRegistry
 
+_TOOL_INPUT_BUILDERS: dict[str, Any] = {}  # populated at module level below
+
 
 class AnalysisAgent(Agent):
+    """Executes all planner-required tools and records structured outputs."""
+
     name = "analysis"
 
     def __init__(self, tools: ToolRegistry) -> None:
@@ -25,7 +29,7 @@ class AnalysisAgent(Agent):
         results: dict[str, list[dict[str, Any]]] = {}
 
         for tool_name in required_tools:
-            inputs = self._inputs_for_tool(tool_name, state.query, genes, diseases)
+            inputs = _build_tool_inputs(tool_name, state.query, genes, diseases)
             for tool_input in inputs:
                 result, cached = await self.tools.call(tool_name, tool_input)
                 record = ToolCallRecord(
@@ -41,21 +45,30 @@ class AnalysisAgent(Agent):
         state.analysis_results = results
         return {"tool_results": results, "tool_call_count": len(state.tool_calls)}
 
-    @staticmethod
-    def _inputs_for_tool(
-        tool_name: str,
-        query: str,
-        genes: list[str],
-        diseases: list[str],
-    ) -> list[dict[str, Any]]:
-        if tool_name == "gene_lookup":
-            return [{"gene": gene} for gene in genes] or [{"gene": "UNKNOWN"}]
-        if tool_name == "pathway_analysis":
-            return [{"genes": genes or ["BRCA1"], "query": query}]
-        if tool_name == "clinical_trial_search":
-            if genes:
-                return [{"gene": gene, "disease": diseases[0] if diseases else None} for gene in genes]
-            return [{"gene": None, "disease": diseases[0] if diseases else None}]
-        if tool_name == "stats_analysis":
-            return [{"query": query}]
+
+def _build_tool_inputs(
+    tool_name: str,
+    query: str,
+    genes: list[str],
+    diseases: list[str],
+) -> list[dict[str, Any]]:
+    """Build tool input payloads from extracted entities.
+
+    Uses a dispatch dict for cleaner extension.  Falls back to the raw
+    query string for unrecognised tools.
+    """
+    builders = {
+        "gene_lookup": lambda: [{"gene": g} for g in genes] if genes else [],
+        "pathway_analysis": lambda: [{"genes": genes, "query": query}] if genes else [],
+        "clinical_trial_search": lambda: (
+            [{"gene": g, "disease": diseases[0] if diseases else None} for g in genes]
+            if genes
+            else [{"gene": None, "disease": diseases[0] if diseases else None}]
+        ),
+        "stats_analysis": lambda: [{"query": query}],
+    }
+    builder = builders.get(tool_name)
+    if builder is None:
         return [{"query": query}]
+    result = builder()
+    return result if result else [{"query": query}]

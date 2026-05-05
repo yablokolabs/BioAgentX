@@ -4,6 +4,8 @@ from pydantic import BaseModel, Field
 
 
 class GraphNode(BaseModel):
+    """A single entity (gene, disease, pathway) in the knowledge graph."""
+
     node_id: str
     node_type: str
     name: str
@@ -12,6 +14,8 @@ class GraphNode(BaseModel):
 
 
 class GraphEdge(BaseModel):
+    """A directed relationship between two graph nodes."""
+
     source: str
     target: str
     relationship: str
@@ -19,6 +23,8 @@ class GraphEdge(BaseModel):
 
 
 class GraphNeighborhood(BaseModel):
+    """BFS expansion result from a seed term."""
+
     seed: str
     nodes: list[GraphNode]
     edges: list[GraphEdge]
@@ -26,7 +32,12 @@ class GraphNeighborhood(BaseModel):
 
 
 class KnowledgeGraph:
-    """Small in-memory biomedical KG with deterministic neighbor expansion."""
+    """In-memory biomedical knowledge graph with deterministic BFS expansion.
+
+    Nodes are genes, diseases, and pathways.  Edges represent causal,
+    inhibitory, and interaction relationships.  Reverse edges are created
+    automatically so traversal works in both directions.
+    """
 
     def __init__(self, nodes: list[GraphNode], edges: list[GraphEdge]) -> None:
         self.nodes = {node.node_id: node for node in nodes}
@@ -49,10 +60,12 @@ class KnowledgeGraph:
             )
 
     def resolve(self, term: str) -> GraphNode | None:
+        """Look up a node by name or alias (case-insensitive)."""
         node_id = self.name_index.get(term.lower())
         return self.nodes.get(node_id) if node_id else None
 
     def extract_known_terms(self, query: str) -> dict[str, list[str]]:
+        """Return genes, diseases, and pathways mentioned in *query*."""
         lowered = query.lower()
         genes: list[str] = []
         diseases: list[str] = []
@@ -73,6 +86,7 @@ class KnowledgeGraph:
         }
 
     def neighborhood(self, seed: str, depth: int = 2) -> GraphNeighborhood:
+        """Return all nodes and edges reachable from *seed* within *depth* hops."""
         start = self.resolve(seed)
         if start is None:
             return GraphNeighborhood(seed=seed, nodes=[], edges=[], expanded_terms=[])
@@ -93,4 +107,5 @@ class KnowledgeGraph:
         return GraphNeighborhood(seed=start.name, nodes=nodes, edges=visited_edges, expanded_terms=expanded)
 
     def expand_terms(self, seeds: list[str], depth: int = 2) -> dict[str, GraphNeighborhood]:
+        """Expand multiple seed terms into their graph neighborhoods."""
         return {seed: self.neighborhood(seed, depth=depth) for seed in seeds}

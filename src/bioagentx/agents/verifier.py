@@ -4,6 +4,13 @@ from bioagentx.orchestration.state import WorkflowState
 
 
 class VerifierAgent(Agent):
+    """Evaluates grounding quality and hallucination risk.
+
+    Adjusts the workflow confidence score downward when the verification
+    score is lower, and records warnings as structured notes rather than
+    mutating the answer text.
+    """
+
     name = "verifier"
 
     def __init__(self, evaluator: Evaluator) -> None:
@@ -14,8 +21,6 @@ class VerifierAgent(Agent):
         state.verification = report
         state.confidence_score = min(state.confidence_score, report.correctness_score)
         if not report.passed:
-            state.answer = (
-                f"{state.answer or ''} Verification warning: "
-                f"{'; '.join(report.hallucination_flags or report.notes)}"
-            ).strip()
+            warnings = report.hallucination_flags or report.notes
+            report.notes = [*report.notes, *(f"warning: {w}" for w in warnings if w not in report.notes)]
         return report.model_dump()

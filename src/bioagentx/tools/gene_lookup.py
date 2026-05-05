@@ -1,6 +1,6 @@
 from bioagentx.tools.base import BioTool
 
-GENE_DB = {
+GENE_DB: dict[str, dict[str, object]] = {
     "BRCA1": {
         "name": "BRCA1",
         "full_name": "BRCA1 DNA repair associated",
@@ -45,6 +45,8 @@ GENE_DB = {
 
 
 class GeneLookupTool(BioTool):
+    """Return structured gene annotation and clinical relevance from a local demo database."""
+
     name = "gene_lookup"
     description = "Return structured gene annotation and clinical relevance."
 

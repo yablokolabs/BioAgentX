@@ -1,11 +1,7 @@
 import logging
 import time
 
-from bioagentx.agents.analysis import AnalysisAgent
-from bioagentx.agents.planner import PlannerAgent
-from bioagentx.agents.research import ResearchAgent
-from bioagentx.agents.synthesis import SynthesisAgent
-from bioagentx.agents.verifier import VerifierAgent
+from bioagentx.agents.base import Agent
 from bioagentx.core.metrics import WORKFLOW_LATENCY, WORKFLOW_RUNS
 from bioagentx.orchestration.state import StepStatus, WorkflowState
 from bioagentx.orchestration.store import WorkflowStore
@@ -14,29 +10,29 @@ logger = logging.getLogger(__name__)
 
 
 class WorkflowEngine:
-    """Minimal LangGraph-style state machine for biomedical agent workflows."""
+    """Stateful pipeline engine that runs agents in sequence.
+
+    Persists intermediate state after every agent step for auditability.
+    """
 
     def __init__(
         self,
-        planner: PlannerAgent,
-        research: ResearchAgent,
-        analysis: AnalysisAgent,
-        synthesis: SynthesisAgent,
-        verifier: VerifierAgent,
+        planner: Agent,
+        research: Agent,
+        analysis: Agent,
+        synthesis: Agent,
+        verifier: Agent,
         store: WorkflowStore,
     ) -> None:
-        self.planner = planner
-        self.research = research
-        self.analysis = analysis
-        self.synthesis = synthesis
-        self.verifier = verifier
+        self._agents: list[Agent] = [planner, research, analysis, synthesis, verifier]
         self.store = store
 
     async def run(self, query: str, trace_id: str | None = None) -> WorkflowState:
+        """Execute the full agent pipeline and return final state."""
         start = time.perf_counter()
         state = WorkflowState(query=query, trace_id=trace_id, status=StepStatus.RUNNING)
         try:
-            for agent in [self.planner, self.research, self.analysis, self.synthesis, self.verifier]:
+            for agent in self._agents:
                 state = await agent.run(state)
                 await self.store.save_workflow(state)
             state.status = StepStatus.COMPLETED

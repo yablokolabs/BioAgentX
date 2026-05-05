@@ -1,6 +1,6 @@
 from bioagentx.tools.base import BioTool
 
-PATHWAYS = {
+PATHWAYS: dict[str, list[dict[str, object]]] = {
     "BRCA1": [
         {"pathway": "DNA repair", "enrichment_score": 0.91, "interpretation": "homologous recombination defect signal"},
         {"pathway": "p53 signaling", "enrichment_score": 0.62, "interpretation": "DNA damage checkpoint crosstalk"},
@@ -25,19 +25,21 @@ PATHWAYS = {
 
 
 class PathwayAnalysisTool(BioTool):
+    """Return mock but structured pathway insights for genes or gene sets."""
+
     name = "pathway_analysis"
-    description = "Return mock but structured pathway insights for genes or gene sets."
+    description = "Return deterministic pathway enrichment results for demonstration."
 
     async def run(self, tool_input: dict[str, object]) -> dict[str, object]:
         genes = tool_input.get("genes") or tool_input.get("gene") or []
         if isinstance(genes, str):
             genes = [genes]
         normalized = [str(gene).upper() for gene in genes]
-        pathways = []
+        pathways: list[dict[str, object]] = []
         for gene in normalized:
             for result in PATHWAYS.get(gene, []):
                 pathways.append({"gene": gene, **result})
-        pathways.sort(key=lambda item: item["enrichment_score"], reverse=True)
+        pathways.sort(key=lambda item: float(item.get("enrichment_score", 0)), reverse=True)
         return {
             "genes": normalized,
             "top_pathways": pathways[:5],

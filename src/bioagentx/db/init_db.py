@@ -6,17 +6,15 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from bioagentx.core.config import Settings
+from bioagentx.db.session import vector_literal
 from bioagentx.rag.embeddings import HashEmbeddingProvider
 from bioagentx.rag.seed_data import SEED_PAPERS
 
 logger = logging.getLogger(__name__)
 
 
-def vector_literal(vector: list[float]) -> str:
-    return "[" + ",".join(f"{value:.6f}" for value in vector) + "]"
-
-
 async def initialise_database(engine: AsyncEngine, settings: Settings) -> None:
+    """Create tables, indexes, and seed demo papers if ``auto_create_schema`` is enabled."""
     if not settings.auto_create_schema:
         return
     embedder = HashEmbeddingProvider(settings.embedding_dimensions)

@@ -2,6 +2,7 @@ from bioagentx.knowledge_graph.graph import GraphEdge, GraphNode, KnowledgeGraph
 
 
 def build_seed_graph() -> KnowledgeGraph:
+    """Construct the demo knowledge graph with 15 biomedical nodes and 13 edges."""
     nodes = [
         GraphNode(node_id="gene:BRCA1", node_type="gene", name="BRCA1", aliases=["breast cancer gene 1"]),
         GraphNode(node_id="gene:TP53", node_type="gene", name="TP53", aliases=["p53"]),

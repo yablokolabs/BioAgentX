@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 
 class BioPaperRepository(ABC):
+    """Interface for searching biomedical papers."""
+
     @abstractmethod
     async def search(
         self,
@@ -25,6 +27,8 @@ class BioPaperRepository(ABC):
 
 
 class InMemoryBioPaperRepository(BioPaperRepository):
+    """In-memory paper store using hash-based embeddings for vector search."""
+
     def __init__(self, embedding_provider: HashEmbeddingProvider, papers: list[BioPaper] | None = None) -> None:
         self.embedding_provider = embedding_provider
         self.papers = papers or SEED_PAPERS
@@ -68,6 +72,8 @@ class InMemoryBioPaperRepository(BioPaperRepository):
 
 
 class PostgresBioPaperRepository(BioPaperRepository):
+    """Postgres + pgvector paper repository with hybrid keyword/vector search."""
+
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self.session_factory = session_factory
 
@@ -128,7 +134,8 @@ class PostgresBioPaperRepository(BioPaperRepository):
 
     @staticmethod
     def _vector_literal(vector: list[float]) -> str:
-        return "[" + ",".join(f"{value:.6f}" for value in vector) + "]"
+        from bioagentx.db.session import vector_literal
+        return vector_literal(vector)
 
     @staticmethod
     def _row_to_hit(row: Any) -> RagHit:

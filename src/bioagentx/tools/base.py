@@ -6,6 +6,8 @@ from pydantic import BaseModel, Field
 
 
 class ToolResult(BaseModel):
+    """Structured output from a single tool invocation."""
+
     tool_name: str
     input: dict[str, Any]
     output: dict[str, Any]
@@ -14,6 +16,12 @@ class ToolResult(BaseModel):
 
 
 class BioTool(ABC):
+    """Abstract base for all biomedical analysis tools.
+
+    Subclasses must set ``name`` and ``description`` class attributes
+    and implement :meth:`run`.
+    """
+
     name: str
     description: str
 
@@ -29,4 +37,6 @@ class BioTool(ABC):
         )
 
     @abstractmethod
-    async def run(self, tool_input: dict[str, Any]) -> dict[str, Any]: ...
+    async def run(self, tool_input: dict[str, Any]) -> dict[str, Any]:
+        """Execute the tool and return a JSON-serializable dict."""
+        ...

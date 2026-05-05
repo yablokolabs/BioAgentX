@@ -1,6 +1,6 @@
 from bioagentx.tools.base import BioTool
 
-TRIALS = [
+TRIALS: list[dict[str, str]] = [
     {"trial_id": "NCT-BRCA-001", "gene": "BRCA1", "disease": "breast cancer", "phase": "Phase 2", "status": "Recruiting", "intervention": "PARP inhibitor combination"},
     {"trial_id": "NCT-EGFR-101", "gene": "EGFR", "disease": "lung cancer", "phase": "Phase 3", "status": "Active, not recruiting", "intervention": "EGFR tyrosine kinase inhibitor"},
     {"trial_id": "NCT-TNF-201", "gene": "TNF", "disease": "rheumatoid arthritis", "phase": "Phase 4", "status": "Completed", "intervention": "TNF inhibitor safety monitoring"},
@@ -9,6 +9,8 @@ TRIALS = [
 
 
 class ClinicalTrialSearchTool(BioTool):
+    """Search mock clinical trial metadata by gene and disease."""
+
     name = "clinical_trial_search"
     description = "Search mock clinical trial metadata by gene and disease."
 

@@ -2,22 +2,34 @@ import re
 
 from bioagentx.orchestration.state import VerificationReport, WorkflowState
 
-CLAIM_RISK_TERMS = ["cures", "guarantees", "proves", "always", "never", "definitively"]
+CLAIM_RISK_TERMS = ("cures", "guarantees", "proves", "always", "never", "definitively")
+
+# Verification scoring weights.
+_GROUNDING_WEIGHT = 0.45
+_TOOL_WEIGHT = 0.35
+_FLAG_WEIGHT = 0.20
+_PASS_THRESHOLD = 0.62
 
 
 class Evaluator:
-    """Heuristic evaluator for grounding, tool usage, and hallucination risk."""
+    """Heuristic evaluator for grounding, tool usage, and hallucination risk.
+
+    Scores are composites of three signals: citation grounding, required
+    tool coverage, and absence of overclaim language.
+    """
 
     def evaluate(self, state: WorkflowState) -> VerificationReport:
+        """Produce a :class:`VerificationReport` from the current state."""
         answer = state.answer or ""
-        source_ids = {source.source_id for source in state.sources}
+        source_ids = {src.source_id for src in state.sources}
         cited_ids = set(re.findall(r"\[(S\d+)\]", answer))
         used_sources = source_ids & cited_ids
         grounding_score = len(used_sources) / max(len(source_ids), 1) if source_ids else 0.0
+
         required_tools = {
             tool for step in state.plan if step.agent == "analysis" for tool in step.required_tools
         }
-        executed_tools = {record.tool_name for record in state.tool_calls}
+        executed_tools = {rec.tool_name for rec in state.tool_calls}
         tool_coverage = len(required_tools & executed_tools) / max(len(required_tools), 1)
 
         flags: list[str] = []
@@ -33,11 +45,21 @@ class Evaluator:
             flags.append("no_retrieved_sources")
 
         correctness_score = round(
-            max(0.0, min(0.98, 0.45 * grounding_score + 0.35 * tool_coverage + 0.20 * (0 if flags else 1))),
+            max(
+                0.0,
+                min(
+                    0.98,
+                    _GROUNDING_WEIGHT * grounding_score
+                    + _TOOL_WEIGHT * tool_coverage
+                    + _FLAG_WEIGHT * (0 if flags else 1),
+                ),
+            ),
             3,
         )
-        passed = correctness_score >= 0.62 and not any(flag.startswith("required_tool") for flag in flags)
-        notes = []
+        passed = correctness_score >= _PASS_THRESHOLD and not any(
+            flag.startswith("required_tool") for flag in flags
+        )
+        notes: list[str] = []
         if grounding_score < 0.5:
             notes.append("Increase citation density or retrieval quality.")
         if tool_coverage == 1.0:

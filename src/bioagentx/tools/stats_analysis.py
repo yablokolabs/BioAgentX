@@ -1,6 +1,6 @@
 import math
 import re
-from statistics import mean, pstdev
+from statistics import mean, stdev
 
 from bioagentx.tools.base import BioTool
 
@@ -8,16 +8,18 @@ NUMBER_RE = re.compile(r"-?\d+(?:\.\d+)?")
 
 
 class StatsAnalysisTool(BioTool):
+    """Compute summary statistics and simple effect estimates over supplied numeric data."""
+
     name = "stats_analysis"
     description = "Compute summary statistics and simple effect estimates over supplied numeric data."
 
     async def run(self, tool_input: dict[str, object]) -> dict[str, object]:
         values = tool_input.get("values")
         if values is None:
-            values = [float(match) for match in NUMBER_RE.findall(str(tool_input.get("query", "")))]
+            values = [float(m) for m in NUMBER_RE.findall(str(tool_input.get("query", "")))]
         if not isinstance(values, list):
             values = []
-        numeric = [float(value) for value in values if isinstance(value, int | float)]
+        numeric = [float(v) for v in values if isinstance(v, int | float | str) and self._is_numeric(v)]
         if not numeric:
             return {
                 "n": 0,
@@ -26,8 +28,8 @@ class StatsAnalysisTool(BioTool):
                 "evidence": ["STAT:design-check"],
             }
         avg = mean(numeric)
-        sd = pstdev(numeric) if len(numeric) > 1 else 0.0
-        se = sd / math.sqrt(len(numeric)) if numeric else 0.0
+        sd = stdev(numeric) if len(numeric) > 1 else 0.0
+        se = sd / math.sqrt(len(numeric))
         ci_low = avg - 1.96 * se
         ci_high = avg + 1.96 * se
         return {
@@ -38,3 +40,12 @@ class StatsAnalysisTool(BioTool):
             "method": "descriptive summary with normal-approximation confidence interval",
             "evidence": ["STAT:descriptive-summary"],
         }
+
+    @staticmethod
+    def _is_numeric(value: object) -> bool:
+        """Check whether *value* can be interpreted as a number."""
+        try:
+            float(value)  # type: ignore[arg-type]
+            return True
+        except (TypeError, ValueError):
+            return False
