@@ -11,7 +11,9 @@ class StatsAnalysisTool(BioTool):
     """Compute summary statistics and simple effect estimates over supplied numeric data."""
 
     name = "stats_analysis"
-    description = "Compute summary statistics and simple effect estimates over supplied numeric data."
+    description = (
+        "Compute summary statistics and simple effect estimates over supplied numeric data."
+    )
 
     async def run(self, tool_input: dict[str, object]) -> dict[str, object]:
         values = tool_input.get("values")
@@ -19,7 +21,9 @@ class StatsAnalysisTool(BioTool):
             values = [float(m) for m in NUMBER_RE.findall(str(tool_input.get("query", "")))]
         if not isinstance(values, list):
             values = []
-        numeric = [float(v) for v in values if isinstance(v, int | float | str) and self._is_numeric(v)]
+        numeric = [
+            float(v) for v in values if isinstance(v, int | float | str) and self._is_numeric(v)
+        ]
         if not numeric:
             return {
                 "n": 0,

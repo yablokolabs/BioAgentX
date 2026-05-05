@@ -4,7 +4,9 @@ from bioagentx.orchestration.state import Source, ToolCallRecord, WorkflowPlanSt
 
 def test_evaluator_requires_grounding_and_tool_coverage() -> None:
     state = WorkflowState(query="BRCA1 breast cancer")
-    state.plan = [WorkflowPlanStep(agent="analysis", objective="tools", required_tools=["gene_lookup"])]
+    state.plan = [
+        WorkflowPlanStep(agent="analysis", objective="tools", required_tools=["gene_lookup"])
+    ]
     state.sources = [
         Source(
             source_id="S1",
@@ -32,11 +34,11 @@ def test_evaluator_requires_grounding_and_tool_coverage() -> None:
 def test_evaluator_fails_when_tool_missing() -> None:
     state = WorkflowState(query="BRCA1 breast cancer")
     state.plan = [
-        WorkflowPlanStep(agent="analysis", objective="tools", required_tools=["gene_lookup", "pathway_analysis"])
+        WorkflowPlanStep(
+            agent="analysis", objective="tools", required_tools=["gene_lookup", "pathway_analysis"]
+        )
     ]
-    state.sources = [
-        Source(source_id="S1", title="T", url=None, snippet="s", score=0.5, year=2020)
-    ]
+    state.sources = [Source(source_id="S1", title="T", url=None, snippet="s", score=0.5, year=2020)]
     state.tool_calls = [
         ToolCallRecord(tool_name="gene_lookup", input={"gene": "BRCA1"}, output={"found": True})
     ]
@@ -51,7 +53,9 @@ def test_evaluator_fails_when_tool_missing() -> None:
 
 def test_evaluator_flags_overclaim_terms() -> None:
     state = WorkflowState(query="gene therapy")
-    state.plan = [WorkflowPlanStep(agent="analysis", objective="tools", required_tools=["gene_lookup"])]
+    state.plan = [
+        WorkflowPlanStep(agent="analysis", objective="tools", required_tools=["gene_lookup"])
+    ]
     state.tool_calls = [
         ToolCallRecord(tool_name="gene_lookup", input={"gene": "X"}, output={"found": True})
     ]
@@ -65,7 +69,9 @@ def test_evaluator_flags_overclaim_terms() -> None:
 
 def test_evaluator_no_sources() -> None:
     state = WorkflowState(query="test")
-    state.plan = [WorkflowPlanStep(agent="analysis", objective="tools", required_tools=["stats_analysis"])]
+    state.plan = [
+        WorkflowPlanStep(agent="analysis", objective="tools", required_tools=["stats_analysis"])
+    ]
     state.tool_calls = [
         ToolCallRecord(tool_name="stats_analysis", input={"query": "test"}, output={"n": 0})
     ]

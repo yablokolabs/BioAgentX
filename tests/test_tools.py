@@ -65,7 +65,9 @@ async def test_pathway_analysis_unknown_gene() -> None:
 @pytest.mark.asyncio
 async def test_clinical_trial_search() -> None:
     registry = build_default_registry(cache_ttl_seconds=60)
-    result, _ = await registry.call("clinical_trial_search", {"gene": "EGFR", "disease": "lung cancer"})
+    result, _ = await registry.call(
+        "clinical_trial_search", {"gene": "EGFR", "disease": "lung cancer"}
+    )
 
     assert result.output["count"] >= 1
     assert any(t["gene"] == "EGFR" for t in result.output["trials"])
@@ -74,7 +76,9 @@ async def test_clinical_trial_search() -> None:
 @pytest.mark.asyncio
 async def test_clinical_trial_search_no_match() -> None:
     registry = build_default_registry(cache_ttl_seconds=60)
-    result, _ = await registry.call("clinical_trial_search", {"gene": "UNKNOWN", "disease": "nothing"})
+    result, _ = await registry.call(
+        "clinical_trial_search", {"gene": "UNKNOWN", "disease": "nothing"}
+    )
 
     assert result.output["count"] == 0
 

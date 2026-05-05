@@ -63,7 +63,9 @@ async def lifespan(app: FastAPI):
         retrieval_limit=settings.retrieval_limit,
         rerank_limit=settings.rerank_limit,
     )
-    tools = build_default_registry(settings.cache_ttl_seconds, max_cache_size=settings.cache_max_size)
+    tools = build_default_registry(
+        settings.cache_ttl_seconds, max_cache_size=settings.cache_max_size
+    )
     workflow_engine = WorkflowEngine(
         planner=PlannerAgent(graph),
         research=ResearchAgent(retrieval, graph, settings.graph_depth),
@@ -96,7 +98,9 @@ def create_app() -> FastAPI:
     app.include_router(router)
 
     @app.exception_handler(RequestValidationError)
-    async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    async def validation_exception_handler(
+        request: Request, exc: RequestValidationError
+    ) -> JSONResponse:
         return JSONResponse(
             status_code=422,
             content={
@@ -108,7 +112,9 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(Exception)
     async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-        logger.exception("unhandled_request_error", extra={"trace_id": getattr(request.state, "trace_id", None)})
+        logger.exception(
+            "unhandled_request_error", extra={"trace_id": getattr(request.state, "trace_id", None)}
+        )
         return JSONResponse(
             status_code=500,
             content={

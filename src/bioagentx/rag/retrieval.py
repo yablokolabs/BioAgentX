@@ -15,7 +15,9 @@ class EmbeddingProvider(Protocol):
 class Reranker(Protocol):
     """Protocol for reranker implementations."""
 
-    def rerank(self, query: str, hits: list[RagHit], filters: RetrievalFilter, limit: int) -> list[RagHit]: ...
+    def rerank(
+        self, query: str, hits: list[RagHit], filters: RetrievalFilter, limit: int
+    ) -> list[RagHit]: ...
 
 
 class RetrievalService:

@@ -13,7 +13,9 @@ from bioagentx.tools.stats_analysis import StatsAnalysisTool
 class ToolRegistry:
     """Central registry for bio-tools with optional result caching."""
 
-    def __init__(self, tools: list[BioTool], cache: AsyncTTLCache[ToolResult] | None = None) -> None:
+    def __init__(
+        self, tools: list[BioTool], cache: AsyncTTLCache[ToolResult] | None = None
+    ) -> None:
         self.tools = {tool.name: tool for tool in tools}
         self.cache = cache
 
@@ -35,9 +37,16 @@ class ToolRegistry:
         return result, False
 
 
-def build_default_registry(cache_ttl_seconds: int = 300, *, max_cache_size: int = 2048) -> ToolRegistry:
+def build_default_registry(
+    cache_ttl_seconds: int = 300, *, max_cache_size: int = 2048
+) -> ToolRegistry:
     """Construct a :class:`ToolRegistry` with all built-in bio-tools."""
     return ToolRegistry(
-        tools=[GeneLookupTool(), PathwayAnalysisTool(), ClinicalTrialSearchTool(), StatsAnalysisTool()],
+        tools=[
+            GeneLookupTool(),
+            PathwayAnalysisTool(),
+            ClinicalTrialSearchTool(),
+            StatsAnalysisTool(),
+        ],
         cache=AsyncTTLCache[ToolResult](cache_ttl_seconds, max_size=max_cache_size),
     )

@@ -29,7 +29,9 @@ class BioPaperRepository(ABC):
 class InMemoryBioPaperRepository(BioPaperRepository):
     """In-memory paper store using hash-based embeddings for vector search."""
 
-    def __init__(self, embedding_provider: HashEmbeddingProvider, papers: list[BioPaper] | None = None) -> None:
+    def __init__(
+        self, embedding_provider: HashEmbeddingProvider, papers: list[BioPaper] | None = None
+    ) -> None:
         self.embedding_provider = embedding_provider
         self.papers = papers or SEED_PAPERS
         self._embeddings: dict[str, list[float]] = {}
@@ -54,7 +56,11 @@ class InMemoryBioPaperRepository(BioPaperRepository):
         for paper in self.papers:
             if filters.gene and paper.gene and paper.gene.upper() != filters.gene.upper():
                 continue
-            if filters.disease and paper.disease and filters.disease.lower() not in paper.disease.lower():
+            if (
+                filters.disease
+                and paper.disease
+                and filters.disease.lower() not in paper.disease.lower()
+            ):
                 continue
             if filters.document_type and paper.document_type != filters.document_type:
                 continue
@@ -135,6 +141,7 @@ class PostgresBioPaperRepository(BioPaperRepository):
     @staticmethod
     def _vector_literal(vector: list[float]) -> str:
         from bioagentx.db.session import vector_literal
+
         return vector_literal(vector)
 
     @staticmethod

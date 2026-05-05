@@ -22,5 +22,8 @@ class VerifierAgent(Agent):
         state.confidence_score = min(state.confidence_score, report.correctness_score)
         if not report.passed:
             warnings = report.hallucination_flags or report.notes
-            report.notes = [*report.notes, *(f"warning: {w}" for w in warnings if w not in report.notes)]
+            report.notes = [
+                *report.notes,
+                *(f"warning: {w}" for w in warnings if w not in report.notes),
+            ]
         return report.model_dump()

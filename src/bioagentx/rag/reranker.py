@@ -18,7 +18,9 @@ class SimpleReranker:
     lexical and metadata signals.
     """
 
-    def rerank(self, query: str, hits: list[RagHit], filters: RetrievalFilter, limit: int) -> list[RagHit]:
+    def rerank(
+        self, query: str, hits: list[RagHit], filters: RetrievalFilter, limit: int
+    ) -> list[RagHit]:
         """Rerank hits and return the top *limit* results."""
         query_terms = set(TOKEN_RE.findall(query.lower()))
         reranked: list[RagHit] = []
@@ -28,7 +30,11 @@ class SimpleReranker:
             metadata_boost = 0.0
             if filters.gene and hit.paper.gene and filters.gene.upper() == hit.paper.gene.upper():
                 metadata_boost += _GENE_BOOST
-            if filters.disease and hit.paper.disease and filters.disease.lower() in hit.paper.disease.lower():
+            if (
+                filters.disease
+                and hit.paper.disease
+                and filters.disease.lower() in hit.paper.disease.lower()
+            ):
                 metadata_boost += _DISEASE_BOOST
             score = _VECTOR_WEIGHT * hit.vector_score + _OVERLAP_WEIGHT * overlap + metadata_boost
             reranked.append(

@@ -16,7 +16,9 @@ class SynthesisAgent(Agent):
     name = "synthesis"
 
     async def execute(self, state: WorkflowState) -> dict[str, object]:
-        source_tags = ", ".join(f"[{src.source_id}]" for src in state.sources[:3]) or "no retrieved sources"
+        source_tags = (
+            ", ".join(f"[{src.source_id}]" for src in state.sources[:3]) or "no retrieved sources"
+        )
         genes = state.extracted_entities.get("genes", [])
         diseases = state.extracted_entities.get("diseases", [])
         tool_names = sorted({rec.tool_name for rec in state.tool_calls})
@@ -34,7 +36,9 @@ class SynthesisAgent(Agent):
         }
 
     @staticmethod
-    def _build_reasoning(state: WorkflowState, tool_names: list[str], graph_terms: list[str]) -> list[str]:
+    def _build_reasoning(
+        state: WorkflowState, tool_names: list[str], graph_terms: list[str]
+    ) -> list[str]:
         return [
             "Planner decomposed the biomedical question into retrieval, tool analysis, synthesis, and verification.",
             (
@@ -83,12 +87,16 @@ class SynthesisAgent(Agent):
                 )
                 parts.append(f"Pathway analysis prioritized: {pathway_text}.")
         if "clinical_trial_search" in state.analysis_results:
-            trial_count = sum(r.get("count", 0) for r in state.analysis_results["clinical_trial_search"])
+            trial_count = sum(
+                r.get("count", 0) for r in state.analysis_results["clinical_trial_search"]
+            )
             parts.append(f"Clinical trial search found {trial_count} matching mock trial records.")
         if "stats_analysis" in state.analysis_results:
             stats = state.analysis_results["stats_analysis"][0]
             if stats.get("n", 0):
-                parts.append(f"Stats tool summarized n={stats['n']} observations with mean={stats['mean']}.")
+                parts.append(
+                    f"Stats tool summarized n={stats['n']} observations with mean={stats['mean']}."
+                )
             else:
                 parts.append(
                     "Stats tool found no numeric observations and recommended "

@@ -2,24 +2,64 @@ from bioagentx.tools.base import BioTool
 
 PATHWAYS: dict[str, list[dict[str, object]]] = {
     "BRCA1": [
-        {"pathway": "DNA repair", "enrichment_score": 0.91, "interpretation": "homologous recombination defect signal"},
-        {"pathway": "p53 signaling", "enrichment_score": 0.62, "interpretation": "DNA damage checkpoint crosstalk"},
+        {
+            "pathway": "DNA repair",
+            "enrichment_score": 0.91,
+            "interpretation": "homologous recombination defect signal",
+        },
+        {
+            "pathway": "p53 signaling",
+            "enrichment_score": 0.62,
+            "interpretation": "DNA damage checkpoint crosstalk",
+        },
     ],
     "TP53": [
-        {"pathway": "p53 signaling", "enrichment_score": 0.95, "interpretation": "cell-cycle/apoptosis regulation"},
-        {"pathway": "DNA repair", "enrichment_score": 0.52, "interpretation": "damage-response coordination"},
+        {
+            "pathway": "p53 signaling",
+            "enrichment_score": 0.95,
+            "interpretation": "cell-cycle/apoptosis regulation",
+        },
+        {
+            "pathway": "DNA repair",
+            "enrichment_score": 0.52,
+            "interpretation": "damage-response coordination",
+        },
     ],
     "EGFR": [
-        {"pathway": "EGFR signaling", "enrichment_score": 0.93, "interpretation": "receptor tyrosine kinase activation"},
-        {"pathway": "MAPK signaling", "enrichment_score": 0.74, "interpretation": "downstream proliferative signaling"},
+        {
+            "pathway": "EGFR signaling",
+            "enrichment_score": 0.93,
+            "interpretation": "receptor tyrosine kinase activation",
+        },
+        {
+            "pathway": "MAPK signaling",
+            "enrichment_score": 0.74,
+            "interpretation": "downstream proliferative signaling",
+        },
     ],
     "APOE": [
-        {"pathway": "lipid transport", "enrichment_score": 0.88, "interpretation": "lipoprotein trafficking"},
-        {"pathway": "neuroinflammation", "enrichment_score": 0.49, "interpretation": "context-dependent risk modulation"},
+        {
+            "pathway": "lipid transport",
+            "enrichment_score": 0.88,
+            "interpretation": "lipoprotein trafficking",
+        },
+        {
+            "pathway": "neuroinflammation",
+            "enrichment_score": 0.49,
+            "interpretation": "context-dependent risk modulation",
+        },
     ],
     "TNF": [
-        {"pathway": "inflammatory signaling", "enrichment_score": 0.96, "interpretation": "cytokine cascade activation"},
-        {"pathway": "NF-kB signaling", "enrichment_score": 0.81, "interpretation": "immune transcriptional response"},
+        {
+            "pathway": "inflammatory signaling",
+            "enrichment_score": 0.96,
+            "interpretation": "cytokine cascade activation",
+        },
+        {
+            "pathway": "NF-kB signaling",
+            "enrichment_score": 0.81,
+            "interpretation": "immune transcriptional response",
+        },
     ],
 }
 

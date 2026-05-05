@@ -33,12 +33,16 @@ async def health(request: Request) -> HealthResponse:
 
 
 @router.post("/query", response_model=QueryResponse)
-async def query(payload: QueryRequest, request: Request, engine: WorkflowEngineDep) -> QueryResponse:
+async def query(
+    payload: QueryRequest, request: Request, engine: WorkflowEngineDep
+) -> QueryResponse:
     """Submit a biomedical question and receive a tool-backed answer."""
     trace_id = getattr(request.state, "trace_id", None)
     state = await engine.run(payload.query, trace_id=trace_id)
     if state.answer is None or state.verification is None:
-        raise HTTPException(status_code=500, detail="Workflow completed without answer or verification.")
+        raise HTTPException(
+            status_code=500, detail="Workflow completed without answer or verification."
+        )
     return QueryResponse(
         workflow_id=state.workflow_id,
         answer=state.answer,

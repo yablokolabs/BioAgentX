@@ -104,7 +104,9 @@ class KnowledgeGraph:
                     queue.append((edge.target, current_depth + 1))
         nodes = [self.nodes[node_id] for node_id in visited_nodes]
         expanded = sorted({term for node in nodes for term in [node.name, *node.aliases]})
-        return GraphNeighborhood(seed=start.name, nodes=nodes, edges=visited_edges, expanded_terms=expanded)
+        return GraphNeighborhood(
+            seed=start.name, nodes=nodes, edges=visited_edges, expanded_terms=expanded
+        )
 
     def expand_terms(self, seeds: list[str], depth: int = 2) -> dict[str, GraphNeighborhood]:
         """Expand multiple seed terms into their graph neighborhoods."""

@@ -12,7 +12,9 @@ class ResearchAgent(Agent):
 
     name = "research"
 
-    def __init__(self, retrieval: RetrievalService, graph: KnowledgeGraph, graph_depth: int = 2) -> None:
+    def __init__(
+        self, retrieval: RetrievalService, graph: KnowledgeGraph, graph_depth: int = 2
+    ) -> None:
         self.retrieval = retrieval
         self.graph = graph
         self.graph_depth = graph_depth
@@ -22,7 +24,9 @@ class ResearchAgent(Agent):
         diseases = state.extracted_entities.get("diseases", [])
         seed_terms = [*genes, *diseases, *state.extracted_entities.get("pathways", [])]
         neighborhoods = self.graph.expand_terms(seed_terms, depth=self.graph_depth)
-        expanded_terms = sorted({term for nb in neighborhoods.values() for term in nb.expanded_terms})
+        expanded_terms = sorted(
+            {term for nb in neighborhoods.values() for term in nb.expanded_terms}
+        )
         query = f"{state.query} {' '.join(expanded_terms)}".strip()
 
         # Use all extracted entities for filtering, not just the first.

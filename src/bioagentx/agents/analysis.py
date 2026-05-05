@@ -22,7 +22,9 @@ class AnalysisAgent(Agent):
                 required_tools.extend(step.required_tools)
         required_tools = list(dict.fromkeys(required_tools))
         if not required_tools:
-            raise RuntimeError("Planner failed to require tool usage; refusing chatbot-only execution.")
+            raise RuntimeError(
+                "Planner failed to require tool usage; refusing chatbot-only execution."
+            )
 
         genes = state.extracted_entities.get("genes", [])
         diseases = state.extracted_entities.get("diseases", [])

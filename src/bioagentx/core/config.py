@@ -36,7 +36,9 @@ class Settings(BaseSettings):
     cache_max_size: int = 2048
     rate_limit_per_minute: int = 120
     rate_limit_burst: int = 40
-    supported_domains: list[str] = Field(default_factory=lambda: ["oncology", "genomics", "clinical_trials"])
+    supported_domains: list[str] = Field(
+        default_factory=lambda: ["oncology", "genomics", "clinical_trials"]
+    )
 
     @field_validator("supported_domains", mode="before")
     @classmethod

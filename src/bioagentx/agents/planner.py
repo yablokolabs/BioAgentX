@@ -24,12 +24,17 @@ class PlannerAgent(Agent):
             required_tools.append("pathway_analysis")
         if diseases or "trial" in lowered or "therapy" in lowered or "clinical" in lowered:
             required_tools.append("clinical_trial_search")
-        if any(token in lowered for token in ("stats", "p-value", "significant", "cohort", "mean", "median")):
+        if any(
+            token in lowered
+            for token in ("stats", "p-value", "significant", "cohort", "mean", "median")
+        ):
             required_tools.append("stats_analysis")
 
         # Only add stats_analysis as a fallback when the query clearly
         # requests numeric analysis but no other tools matched.
-        if not required_tools and any(token in lowered for token in ("data", "analysis", "study", "evidence")):
+        if not required_tools and any(
+            token in lowered for token in ("data", "analysis", "study", "evidence")
+        ):
             required_tools.append("stats_analysis")
 
         ordered_tools = list(dict.fromkeys(required_tools))
@@ -53,4 +58,8 @@ class PlannerAgent(Agent):
                 objective="Check grounding, hallucination risk, tool coverage, and confidence.",
             ),
         ]
-        return {"entities": entities, "required_tools": ordered_tools, "plan": [step.model_dump() for step in state.plan]}
+        return {
+            "entities": entities,
+            "required_tools": ordered_tools,
+            "plan": [step.model_dump() for step in state.plan],
+        }

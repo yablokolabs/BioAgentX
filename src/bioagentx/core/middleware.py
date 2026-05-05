@@ -10,7 +10,9 @@ from starlette.responses import Response
 class RequestContextMiddleware(BaseHTTPMiddleware):
     """Injects a unique ``x-trace-id`` header and measures request latency."""
 
-    async def dispatch(self, request: Request, call_next: Callable[[Request], Response]) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Response]
+    ) -> Response:
         incoming = request.headers.get("x-trace-id")
         try:
             trace_id = str(uuid.UUID(incoming)) if incoming else str(uuid.uuid4())

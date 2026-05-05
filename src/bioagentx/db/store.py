@@ -48,11 +48,15 @@ class PostgresWorkflowStore(WorkflowStore):
         """Load a previously persisted workflow by ID."""
         async with self.session_factory() as session:
             row = (
-                await session.execute(
-                    text("SELECT state FROM workflow_runs WHERE workflow_id = :workflow_id"),
-                    {"workflow_id": workflow_id},
+                (
+                    await session.execute(
+                        text("SELECT state FROM workflow_runs WHERE workflow_id = :workflow_id"),
+                        {"workflow_id": workflow_id},
+                    )
                 )
-            ).mappings().first()
+                .mappings()
+                .first()
+            )
         if not row:
             return None
         return WorkflowState.model_validate(row["state"])
@@ -84,4 +88,9 @@ class PostgresWorkflowStore(WorkflowStore):
                 },
             )
             await session.commit()
-        return {"feedback_id": feedback_id, "workflow_id": workflow_id, "label": label, "status": "recorded"}
+        return {
+            "feedback_id": feedback_id,
+            "workflow_id": workflow_id,
+            "label": label,
+            "status": "recorded",
+        }

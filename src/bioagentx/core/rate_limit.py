@@ -34,7 +34,9 @@ class InMemoryRateLimitMiddleware(BaseHTTPMiddleware):
             del self._hits[key]
         self._last_prune = now
 
-    async def dispatch(self, request: Request, call_next: Callable[[Request], Response]) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Response]
+    ) -> Response:
         client = request.client.host if request.client else "unknown"
         now = time.monotonic()
         self._prune_stale_clients(now)
@@ -49,7 +51,10 @@ class InMemoryRateLimitMiddleware(BaseHTTPMiddleware):
         if len(window) >= allowed:
             return JSONResponse(
                 status_code=429,
-                content={"error": "rate_limited", "message": "Too many requests — please retry shortly."},
+                content={
+                    "error": "rate_limited",
+                    "message": "Too many requests — please retry shortly.",
+                },
             )
         window.append(now)
         return await call_next(request)

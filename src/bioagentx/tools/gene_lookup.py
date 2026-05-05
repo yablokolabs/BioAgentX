@@ -54,5 +54,10 @@ class GeneLookupTool(BioTool):
         gene = str(tool_input.get("gene", "")).upper()
         record = GENE_DB.get(gene)
         if record is None:
-            return {"found": False, "gene": gene, "evidence": [], "message": "No local gene record found."}
+            return {
+                "found": False,
+                "gene": gene,
+                "evidence": [],
+                "message": "No local gene record found.",
+            }
         return {"found": True, **record}
