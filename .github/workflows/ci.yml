@@ -60,9 +60,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - run: pip install pip-audit
-      - run: pip install .
-      - run: pip-audit --strict --desc
+      - name: Audit dependencies
+        run: |
+          python -m venv /tmp/audit-venv
+          /tmp/audit-venv/bin/pip install --quiet pip-audit
+          /tmp/audit-venv/bin/pip install --quiet .
+          /tmp/audit-venv/bin/pip freeze --exclude bioagentx > /tmp/deps.txt
+          /tmp/audit-venv/bin/pip-audit -r /tmp/deps.txt --strict --desc
 
   docker:
     name: Docker Build
