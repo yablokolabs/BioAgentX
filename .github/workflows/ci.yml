@@ -61,8 +61,8 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - run: pip install pip-audit
-      - run: pip install -e .
-      - run: pip-audit --strict --desc --skip-editable
+      - run: pip install .
+      - run: pip-audit --strict --desc
 
   docker:
     name: Docker Build
